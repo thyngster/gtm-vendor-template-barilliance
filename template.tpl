@@ -64,28 +64,55 @@ ___WEB_PERMISSIONS___
       "isEditedByUser": true
     },
     "isRequired": true
+  },
+  {
+    "instance": {
+      "key": {
+        "publicId": "logging",
+        "versionId": "1"
+      },
+      "param": [
+        {
+          "key": "environments",
+          "value": {
+            "type": 1,
+            "string": "debug"
+          }
+        }
+      ]
+    },
+    "isRequired": true
   }
 ]
 
 
 ___SANDBOXED_JS_FOR_WEB_TEMPLATE___
 
-// Enter your template code here.
-// David Vallejo ( 2019-06-17 )
+// David Vallejo ( 2019-09-04 )
 
 // Load Required Libraries
+const log = require('logToConsole');
+const queryPermission = require('queryPermission');
 const injectScript = require('injectScript');
+const encode = require('encodeUriComponent');
 
-// Read Config Details
-const accountId = data.accountId;
+
+// Read Config Details and sanitize the input
+const accountId = encode(data.accountId);
 
 // Build the Script URL
 const scriptUrl = 'https://cloudfront.barilliance.com/'+accountId+'/cbar.js.php';
 
-// Inject the tracking Script into the Page
-injectScript(scriptUrl, data.gtmOnSuccess,data.gtmOnFailure);
+// Check if current scripts being loaded is allowed
+if (queryPermission('inject_script', scriptUrl)) {
+   // Inject the tracking Script into the Page  
+  injectScript(scriptUrl, data.gtmOnSuccess, data.gtmOnFailure, scriptUrl);
+} else {
+  log("GTM-DEBUG :: Barilliance >> Current script src is not allowed in permissions configuration");
+  data.gtmOnFailure();
+}
 
 
 ___NOTES___
 
-Created on 17/6/2019 13:02:31
+Created on 4/9/2019 12:38:43
